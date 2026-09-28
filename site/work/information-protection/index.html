@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Information protection: governed AI sensitivity labelling | David Nealon</title>
+<meta name="description" content="Case study: an on-device AI classifier proposes Microsoft Purview sensitivity labels, policy decides, a human approves each file, and every label is verified by reading it back.">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../../">David Nealon <span>AI product, governance &amp; engineering</span></a>
+    <nav class="site" aria-label="Main">
+      <ul>
+        <li><a href="../../#work" aria-current="page">Work</a></li>
+        <li><a href="../../research/">Research</a></li>
+        <li><a href="../../disclosure/">Disclosure policy</a></li>
+        <li><a href="../../#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap study">
+  <div class="study-head prose">
+    <p class="eyebrow">Case study 3 of 3</p>
+    <h1>Information protection: governed AI sensitivity labelling</h1>
+    <p class="lede">An on-device AI model proposes a Microsoft Purview sensitivity label for each file. Policy decides what is allowed, a person approves each write, and every label is proven by reading it back.</p>
+    <ul class="chips" aria-label="Status">
+      <li class="chip demonstrated">Demonstrated live</li>
+      <li class="chip">Personal build</li>
+      <li class="chip">Single-user developer tenant</li>
+    </ul>
+  </div>
+
+  <div class="facts">
+    <div><b>My role</b><span>Designer and builder</span></div>
+    <div><b>Timeframe</b><span>7 to 14 September 2026</span></div>
+    <div><b>Stack</b><span>Python, Microsoft Graph, Microsoft Purview sensitivity labels, Foundry Local running Phi-4-mini on-device, Excel as the approval surface, GitHub Actions</span></div>
+    <div><b>Scale</b><span>600+ automated tests; live runs against my own Microsoft 365 developer tenant</span></div>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#approach">Approach</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#security">Security and governance</a></li>
+      <li><a href="#evidence">Evidence</a></li>
+      <li><a href="#learned">What I learned</a></li>
+    </ol>
+  </nav>
+
+  <div class="prose">
+    <h2 id="problem"><span class="n">01</span>Problem</h2>
+    <p>Microsoft 365 Copilot and similar tools respect sensitivity labels, which makes labelling coverage one of the most important controls in any AI rollout. Yet most organisations have large volumes of unlabelled content, and nobody can label it all by hand.</p>
+    <p>AI can help classify content. Handing it the power to change labels, however, turns a classifier's mistakes into policy. It also usually means sending document content to yet another service to be read. I wanted to know whether AI could help close the coverage gap <strong>without the content leaving the machine and without the model holding any authority</strong>.</p>
+
+    <h2 id="approach"><span class="n">02</span>Approach</h2>
+    <div class="callout">
+      <p><strong>The model proposes. Policy decides. A person approves. Graph executes. Purview enforces. The audit trail proves it.</strong></p>
+    </div>
+    <ul>
+      <li><strong>Classification runs on-device.</strong> A small language model running locally reads each document. The document content never goes to an external AI service.</li>
+      <li><strong>The model can never write.</strong> Its output is a proposal checked against a strict schema. Malformed output is rejected, not repaired. A deterministic layer of sensitive-content indicators sets a floor the model cannot go below without human review.</li>
+      <li><strong>Every write needs a person.</strong> Approvals are made in a familiar tool (an Excel workbook). The system trusts only the approval columns and re-derives everything else on import.</li>
+      <li><strong>Proof is a read-back, not an API response.</strong> A label counts as applied only when it is read back through a separate, read-only identity.</li>
+    </ul>
+
+    <h2 id="architecture"><span class="n">03</span>Architecture</h2>
+  </div>
+
+  <div class="arch" role="img" aria-label="Architecture: discovery through Microsoft Graph with a read-only identity; on-device classification; deterministic policy; human approval workbook; a separate write identity applies labels through Graph; verification by read-back with the read-only identity; evidence for every attempt.">
+    <div class="row">
+      <div class="zone">
+        <p class="label">Read-only identity</p>
+        <div class="box"><b>1. Discover</b><span>Find files through Microsoft Graph and skip anything unchanged since the last run.</span></div>
+      </div>
+      <div class="zone trusted">
+        <p class="label">On-device</p>
+        <div class="box"><b>2. Classify</b><span>Local model proposes a label and reasons. Large documents are chunked and take the highest credible chunk label, never an average.</span></div>
+      </div>
+      <div class="zone">
+        <p class="label">Deterministic</p>
+        <div class="box"><b>3. Policy</b><span>Schema checks, sensitive-content floor, allow-listed labels. Decides what may be proposed for approval.</span></div>
+      </div>
+    </div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="row">
+      <div class="zone trusted">
+        <p class="label">Human authority</p>
+        <div class="box"><b>4. Approve</b><span>A person approves each file's label in a workbook. Each approval is single use and expires.</span></div>
+      </div>
+      <div class="zone">
+        <p class="label">Separate write identity</p>
+        <div class="box"><b>5. Apply</b><span>A write gate with one permitted path and fifteen named refusals. The file is re-read immediately before each write.</span></div>
+      </div>
+      <div class="zone">
+        <p class="label">Read-only identity</p>
+        <div class="box"><b>6. Verify</b><span>Read the label back. Anything not yet visible is re-read later, never re-written.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2 id="security"><span class="n">04</span>Security and governance</h2>
+    <p>The write gate is a pure function with exactly one path that permits a write. Everything else is a named refusal, and every attempt, refused or not, writes an evidence record. Among the fifteen refusals:</p>
+    <ul>
+      <li><strong>No approval:</strong> a classification is never an approval.</li>
+      <li><strong>Approval already used or expired:</strong> an approval authorises one write, not a standing permission.</li>
+      <li><strong>File or label changed since approval:</strong> the person approved what they saw, not whatever is there now.</li>
+      <li><strong>Current label unknown, or two sources disagree:</strong> a blind write is refused.</li>
+      <li><strong>Downgrade not separately approved:</strong> lowering a label needs its own explicit authority.</li>
+    </ul>
+    <p>Reading and writing use <strong>two separate app identities</strong> with the narrowest delegated permissions that do the job. Label removal cannot be expressed at all. Batches are frozen manifests identified by a digest, so any edit makes the batch stale, and a single command-line limit caps how many files a run may touch.</p>
+
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Host / infrastructure detail: redacted</p>
+      <p>Tenant, app registration, certificate and label identifiers, file names and locations, and tenant configuration are not published. None of them is needed to understand the design.</p>
+    </div>
+
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Security redaction: implementation detail intentionally withheld</p>
+      <p>How content egress is enforced and verified is not published. The published outcome is the measurement from the application's own egress counter: zero bytes of document content sent to an external AI service.</p>
+    </div>
+
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Employer / third-party IP: not included</p>
+      <p>This is a personal build on my own Microsoft 365 developer tenant. It contains no employer data, configuration or intellectual property. My enterprise information-protection experience is described on this site only in general terms.</p>
+    </div>
+
+    <h2 id="evidence"><span class="n">05</span>Evidence and result</h2>
+    <div class="stats">
+      <div class="stat"><b>56.59% → 99.22%</b><span>Label coverage of label-capable files (73 to 128 of 129)</span></div>
+      <div class="stat"><b>55 of 55</b><span>Applied labels verified by independent read-back</span></div>
+      <div class="stat"><b>0 bytes</b><span>Of document content sent to an external AI service, by the app's own egress counter</span></div>
+      <div class="stat"><b>US$0.10</b><span>Metered API cost of the 55 writes (US$0.10175)</span></div>
+    </div>
+    <p class="after-stats">On 14 September 2026 the full approval journey ran live against my developer tenant: discovery, on-device classification, an approval workbook, a governed batch write and a read-back of every label. A fresh reclassification afterwards agreed with the applied label on all 55 files.</p>
+    <p>Model quality was measured separately on a small golden set before any write: four of five cases exact and no under-classification. The gate passed because its one miss was a pre-registered known failure, kept rather than prompt-tuned away: the model confidently labelled an ambiguous note that should have gone to human review.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Claim</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>On-device classification, Graph discovery, governed label write, read-back verification</td><td><span class="chip demonstrated">Demonstrated live</span></td></tr>
+          <tr><td>Golden-set quality gate (5 cases)</td><td><span class="chip measured">Measured, small sample</span></td></tr>
+          <tr><td>Tenant-wide SharePoint coverage</td><td><span class="chip">Not claimed</span> The live runs covered one user's OneDrive on a developer tenant.</td></tr>
+          <tr><td>Copilot Studio front end, policy-driven automation</td><td><span class="chip proposal">Designed, not built</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="learned"><span class="n">06</span>What I learned</h2>
+    <ul>
+      <li><strong>An accepted request is not an applied label.</strong> The API accepts a label write and applies it later, and its own status can lag behind the file. Only a read-back counts, and a read may be repeated where a write may not.</li>
+      <li><strong>Deterministic floors catch what models miss.</strong> On a long document with sensitive material buried in it, the model labelled every chunk <em>Internal</em>. The rule-based indicator floor caught the sensitive section.</li>
+      <li><strong>Map the model's vocabulary to the tenant's, not the other way round.</strong> Ambiguous mappings map to nothing, so they fail closed.</li>
+      <li><strong>Platform behaviour is part of the design.</strong> Label replication, permission errors that look like missing files, and preview-only API routes all changed the architecture. Each one is now a documented first check rather than a surprise.</li>
+      <li><strong>Local models are ready for proposals, not verdicts.</strong> The on-device model was good enough to shortlist labels. It was not good enough to be trusted alone, and the design never asks it to be.</li>
+    </ul>
+
+    <div class="next">
+      <a href="../airlock/">← Airlock</a>
+      <a href="../../research/">Next: Research and experiments →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>© 2026 David Nealon. Written and built by me. This site uses no JavaScript, no cookies, no analytics and no third-party requests.</p>
+    <p><a href="../../disclosure/">What this site deliberately does not publish, and why</a></p>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Disclosure policy | David Nealon</title>
+<meta name="description" content="How this portfolio decides what to publish and what to withhold: an allow-list publication model, visible security redactions, and an automated pre-publication check.">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../">David Nealon <span>AI product, governance &amp; engineering</span></a>
+    <nav class="site" aria-label="Main">
+      <ul>
+        <li><a href="../#work">Work</a></li>
+        <li><a href="../research/">Research</a></li>
+        <li><a href="./" aria-current="page">Disclosure policy</a></li>
+        <li><a href="../#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <div class="study-head prose">
+    <p class="eyebrow">Disclosure policy</p>
+    <h1>What I publish, what I withhold, and how I decided</h1>
+    <p class="lede">A portfolio about governed AI should be governed too. This page explains the rules this site was built under, so that what is missing reads as a decision rather than a gap.</p>
+  </div>
+
+  <div class="prose">
+    <h2>The publication model</h2>
+    <ol>
+      <li><strong>The working repositories stay private.</strong> None of the source repositories behind this work has been made public. Their visibility has not been changed.</li>
+      <li><strong>Allow-list, never copy-then-redact.</strong> Every page here was written from scratch from material deliberately selected for publication. Nothing was copied in wholesale and then trimmed, so there is no earlier, fuller version hiding in this site's history.</li>
+      <li><strong>Redaction happens before publication.</strong> Sensitive detail never entered this site's repository at any point: not in commits, branches, comments, page source, metadata or build output.</li>
+      <li><strong>Fail closed.</strong> Where I was unsure whether something was safe to publish, I left it out.</li>
+      <li><strong>Every claim carries its status.</strong> Each result is labelled demonstrated, measured, prototype, proposal or hypothesis, with its limits stated. No metric was invented or rounded up.</li>
+    </ol>
+
+    <h2>What is published</h2>
+    <ul>
+      <li>The problem, the approach, the design intent and the security outcome of each piece of work.</li>
+      <li>Architecture at the level of zones, responsibilities and decisions.</li>
+      <li>Measured results with their method, sample size and limits, including the ones that went against me.</li>
+      <li>Illustrative examples built from synthetic data. Screenshots of the working systems are not published.</li>
+    </ul>
+
+    <h2>What is withheld, and why</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Category</th><th>Why it is withheld</th></tr></thead>
+        <tbody>
+          <tr><td>Secrets, keys, tokens and credential architecture</td><td>Obvious for the values. The architecture is withheld too, because knowing where credentials live and who may read them is most of an attack plan.</td></tr>
+          <tr><td>Trust-boundary implementation</td><td>How components exchange requests and how sandboxes are constrained is exactly what an attacker would need to cross them.</td></tr>
+          <tr><td>Anti-bypass and anti-replay mechanisms</td><td>What they guarantee is published. How they work is not.</td></tr>
+          <tr><td>Host and infrastructure identifiers</td><td>Machine names, file locations, tenant, subscription, app, certificate and label identifiers, endpoints and signing identities serve no reader and help an attacker.</td></tr>
+          <tr><td>Private security tests and open findings</td><td>Attack corpora, red-team case lists and unresolved findings stay private.</td></tr>
+          <tr><td>Employer and third-party intellectual property</td><td>Everything on this site is personal work. Employer work, data, configuration and internal metrics are not included.</td></tr>
+          <tr><td>Personal data</td><td>Including my own. Some experiments used my personal files and media as test data. Their names and contents are never shown.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>The redaction markers</h2>
+    <p>Where a gap would otherwise be confusing, the page shows a visible marker instead. The markers used on this site are:</p>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Security redaction: implementation detail intentionally withheld</p>
+      <p>The default. Used whenever naming a more specific category would itself reveal something.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Trust boundary implementation: redacted</p>
+      <p>How separated components communicate or are contained.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Anti-bypass control: redacted</p>
+      <p>How a guarantee such as single-use approval is enforced.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Secret and credential handling: redacted</p>
+      <p>Where credentials live and which component may read them.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Host / infrastructure detail: redacted</p>
+      <p>Identifiers, names, locations and configuration of machines and cloud resources.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Private security test: redacted</p>
+      <p>Attack corpora and test cases.</p>
+    </div>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Employer / third-party IP: not included</p>
+      <p>Work that belongs to someone else.</p>
+    </div>
+    <p>Two rules govern the markers. <strong>A marker must not leak by implication</strong>: if naming the category would hint at an architecture or a weakness, the generic marker is used instead. And <strong>markers are used sparingly</strong>. They are there to show judgement, not to make the pages unreadable.</p>
+
+    <h2>How the site was checked before publication</h2>
+    <ul>
+      <li>A written allow-list of every file, reviewed by me before anything was made public.</li>
+      <li>An automated pre-publication check, included in the repository and run on every push. It looks for credential-shaped strings, private keys, identifiers, private hostnames and file paths, personal contact details and internal ticket references, and it proves on every run that each pattern can fire, so a silent scan is never mistaken for a clean one.</li>
+      <li>Before any publication, the same check is run locally against a private deny-list of specific names. That list cannot live in the public repository, because the names themselves are private, so the check refuses to report a pass without it unless it is told explicitly that it is running in public CI, where it says so in its output.</li>
+      <li>A review of the full Git history, not just the latest version, before the repository was made public.</li>
+    </ul>
+
+    <h2>How this site treats you</h2>
+    <p>No JavaScript, no cookies, no analytics, no web fonts and no third-party requests. A strict content security policy allows the page to load only its own stylesheet.</p>
+
+    <h2>Found something that should not be here?</h2>
+    <p>Please tell me via <a href="https://www.linkedin.com/in/davidmartinnealon/">LinkedIn</a>. I will treat it as a security report: fix first, then thank you.</p>
+
+    <div class="next">
+      <a href="../research/">← Research</a>
+      <a href="../">Home →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>© 2026 David Nealon. Written and built by me. This site uses no JavaScript, no cookies, no analytics and no third-party requests.</p>
+  </div>
+</footer>
+</body>
+</html>

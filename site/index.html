@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>David Nealon | AI product, governance and engineering</title>
+<meta name="description" content="David Nealon designs, builds and governs AI systems: agentic capability with bounded human authority, privacy at the model boundary, and evidence for every claim.">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./">David Nealon <span>AI product, governance &amp; engineering</span></a>
+    <nav class="site" aria-label="Main">
+      <ul>
+        <li><a href="#work">Work</a></li>
+        <li><a href="research/">Research</a></li>
+        <li><a href="disclosure/">Disclosure policy</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap hero">
+    <p class="eyebrow">David Nealon · Victoria, Australia</p>
+    <h1>I design, build and govern AI systems that act only within limits a human sets.</h1>
+    <p class="role">AI product, governance and engineering</p>
+    <p class="lede">Enterprise product and information-protection background across Microsoft 365, Purview and Copilot rollout. Hands-on builder in Rust, TypeScript and Python. My work sits where agentic AI meets security: capability with bounded authority, privacy at the model boundary, and evidence for every claim.</p>
+    <div class="actions">
+      <a class="btn primary" href="#work">See the case studies</a>
+      <a class="btn" href="https://github.com/BP2PROFESSIONAL/ai-engineering-portfolio">GitHub</a>
+      <a class="btn" href="https://www.linkedin.com/in/davidmartinnealon/">LinkedIn</a>
+    </div>
+  </div>
+
+  <section class="wrap" aria-labelledby="brief">
+    <h2 id="brief" class="eyebrow">The five-minute version</h2>
+    <div class="brief">
+      <div><h3>Who I am</h3><p>An AI product and governance lead who builds. I have owned enterprise Microsoft 365, Copilot and information-protection products, and I write and ship my own AI systems.</p></div>
+      <div><h3>What I build</h3><p>AI systems where agents propose and people decide: governed self-improvement, reversible privacy for model calls, and AI-assisted sensitivity labelling.</p></div>
+      <div><h3>Why it matters</h3><p>Anyone adopting agentic AI has to answer who authorised what, within which limits, and how to prove it afterwards. My work is about making those answers structural.</p></div>
+      <div><h3>How I handle security</h3><p>Structural controls first, detection last. This site also withholds exploitable detail on purpose. Look for the 🔒 markers and read the <a href="disclosure/">disclosure policy</a>.</p></div>
+      <div><h3>What I personally did</h3><p>Everything here is my own work. I set the architecture, the governance model and the acceptance criteria. AI coding agents write much of the code under a protocol I wrote, and every merge is my decision.</p></div>
+      <div><h3>What evidence exists</h3><p>Live, dated runs with numbers, including results that went against me. Every claim is labelled as demonstrated, prototype, proposal or hypothesis.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap" id="work" aria-labelledby="work-h">
+    <h2 id="work-h">Selected work</h2>
+    <div class="cards">
+      <article class="card">
+        <ul class="chips"><li class="chip demonstrated">Core path demonstrated</li></ul>
+        <h3><a href="work/jarvis/">Jarvis: governed self-improving AI</a></h3>
+        <p>A personal AI system that can find, propose and build improvements to its own code, but only inside a scope I approve and sign, with the result independently verified and the merge left to me.</p>
+        <dl>
+          <dt>Result</dt><dd>On 23 September 2026 a candidate from Jarvis's own discovery run was approved, signed, built in a sandbox, independently re-tested and merged by me through a draft pull request.</dd>
+        </dl>
+        <a class="more" href="work/jarvis/">Read the case study →</a>
+      </article>
+      <article class="card">
+        <ul class="chips"><li class="chip prototype">Prototype</li></ul>
+        <h3><a href="work/airlock/">Airlock: reversible, privacy-preserving inference</a></h3>
+        <p>Personal information is swapped for typed placeholders before a prompt reaches an external model, and restored in the answer inside the trusted boundary.</p>
+        <dl>
+          <dt>Result</dt><dd>Working end-to-end prototype on Azure, built in two days. Deliberately labelled "not yet evaluated": no accuracy claims until it is measured.</dd>
+        </dl>
+        <a class="more" href="work/airlock/">Read the case study →</a>
+      </article>
+      <article class="card">
+        <ul class="chips"><li class="chip demonstrated">Demonstrated live</li></ul>
+        <h3><a href="work/information-protection/">Governed AI sensitivity labelling</a></h3>
+        <p>An on-device model proposes Microsoft Purview labels, policy decides, a person approves each file, and every label is verified by reading it back.</p>
+        <dl>
+          <dt>Result</dt><dd>Label coverage 56.59% → 99.22% on a live developer tenant, 55 of 55 writes verified by read-back, zero bytes of content sent to external AI, about US$0.10 in metered API calls.</dd>
+        </dl>
+        <a class="more" href="work/information-protection/">Read the case study →</a>
+      </article>
+    </div>
+    <p class="small muted">Also: <a href="research/">twelve research findings and experiments</a>, each labelled for what it proves, including a Copilot Studio and Power Automate prototype.</p>
+  </section>
+
+  <section class="wrap" aria-labelledby="numbers">
+    <h2 id="numbers">Evidence at a glance</h2>
+    <div class="stats">
+      <div class="stat"><b>310 commits</b><span>and more than 290 merged pull requests on Jarvis in ten weeks, with over 6,000 automated tests</span></div>
+      <div class="stat"><b>15 refusals</b><span>named in one labelling write gate, with exactly one path that permits a write</span></div>
+      <div class="stat"><b>0 bytes</b><span>of document content sent to external AI during live classification</span></div>
+      <div class="stat"><b>1 of 27</b><span>held-out attacks caught by my own injection detector, which is why nothing relies on it</span></div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="think">
+    <h2 id="think">How I think about AI systems</h2>
+    <div class="principles">
+      <div><h3>Structural controls beat clever ones</h3><p>A capability that does not exist cannot be misused. Detection is the layer everyone demonstrates and the layer that fails first.</p></div>
+      <div><h3>Authority is a record, not a mood</h3><p>Approving and doing are separate, attributable events. An AI proposal is never an approval, however confident it sounds.</p></div>
+      <div><h3>Fail closed, and say why</h3><p>When a system cannot prove something, it stops and records the reason. A refusal is an audited outcome, not an error to retry around.</p></div>
+      <div><h3>Verify the result, not the report</h3><p>A 202 is not a label and an agent's claim is not a test result. Read it back, re-run it, then believe it.</p></div>
+      <div><h3>Publish the number that did not flatter</h3><p>Honest maturity labels (demonstrated, built, specified) do more for credibility than any feature list.</p></div>
+      <div><h3>Check that the owner can still act</h3><p>A control that blocks everything passes every "is it blocked?" test. Always verify the legitimate path works too.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="disclosure-h">
+    <div class="prose">
+      <h2 id="disclosure-h">What this portfolio deliberately does not show</h2>
+      <p>The source repositories behind this work are private and stay private. This site was written from scratch from an explicit allow-list of material. Nothing was copied wholesale and then redacted. Where detail is withheld for security reasons, you will see a marker like this one rather than a silent gap:</p>
+      <div class="redaction" role="note">
+        <p class="tag">🔒 Security redaction: implementation detail intentionally withheld</p>
+        <p>This component contains security-sensitive information that could expose trust boundaries, enforcement mechanisms, credentials architecture or attack surface. The design intent and security outcome are documented; exploitable implementation detail is not published.</p>
+      </div>
+      <p><a href="disclosure/">Read the disclosure policy</a>, which covers what I publish, what I withhold and how I decided.</p>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="background">
+    <div class="prose">
+      <h2 id="background">Background</h2>
+      <ul>
+        <li>Product ownership of Microsoft 365, Microsoft 365 Copilot and ChatGPT Enterprise in a large enterprise, including rollout, governance, adoption and value realisation.</li>
+        <li>Microsoft Purview information protection: sensitivity labels, data loss prevention, sensitive information types and retention.</li>
+        <li>MBA, Melbourne Business School. Microsoft certifications including SC-401, SC-900, AZ-900 and PL-900. ICAgile Certified Professional.</li>
+      </ul>
+      <p class="small muted">Employer work belongs to my employers and is not described here beyond these lines. For full career history, see LinkedIn.</p>
+    </div>
+  </section>
+
+  <section class="wrap" id="contact" aria-labelledby="contact-h">
+    <div class="prose">
+      <h2 id="contact-h">Contact</h2>
+      <p>The best way to reach me is <a href="https://www.linkedin.com/in/davidmartinnealon/">LinkedIn</a>. My CV is available on request.</p>
+      <p>Code: <a href="https://github.com/BP2PROFESSIONAL/ai-engineering-portfolio">github.com/BP2PROFESSIONAL/ai-engineering-portfolio</a>. It holds this site's source and the text versions of each case study.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>© 2026 David Nealon. Written and built by me. This site uses no JavaScript, no cookies, no analytics and no third-party requests.</p>
+    <p><a href="disclosure/">What this site deliberately does not publish, and why</a></p>
+  </div>
+</footer>
+</body>
+</html>

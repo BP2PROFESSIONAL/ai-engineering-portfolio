@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Airlock: reversible, privacy-preserving inference | David Nealon</title>
+<meta name="description" content="Case study: a privacy layer that removes personal information before a prompt reaches an external model, then restores it in the answer for the person entitled to see it.">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../../">David Nealon <span>AI product, governance &amp; engineering</span></a>
+    <nav class="site" aria-label="Main">
+      <ul>
+        <li><a href="../../#work" aria-current="page">Work</a></li>
+        <li><a href="../../research/">Research</a></li>
+        <li><a href="../../disclosure/">Disclosure policy</a></li>
+        <li><a href="../../#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap study">
+  <div class="study-head prose">
+    <p class="eyebrow">Case study 2 of 3</p>
+    <h1>Airlock: reversible, privacy-preserving inference</h1>
+    <p class="lede">A privacy layer for generative AI. It removes personal information before a prompt reaches an external model, then restores it in the answer for the person entitled to see it.</p>
+    <ul class="chips" aria-label="Status">
+      <li class="chip prototype">Prototype</li>
+      <li class="chip">Personal build</li>
+      <li class="chip">Not yet evaluated</li>
+    </ul>
+  </div>
+
+  <div class="facts">
+    <div><b>My role</b><span>Designer and builder</span></div>
+    <div><b>Timeframe</b><span>Built over two days, 15 to 16 September 2026</span></div>
+    <div><b>Stack</b><span>Python on Azure Functions, Microsoft Presidio for detection, a model hosted in Azure AI Foundry, Bicep</span></div>
+    <div><b>Status</b><span>Working prototype on synthetic data. No accuracy claims are made yet.</span></div>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#approach">Approach</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#decisions">Key decisions</a></li>
+      <li><a href="#security">Security and governance</a></li>
+      <li><a href="#evidence">Evidence</a></li>
+      <li><a href="#learned">What I learned</a></li>
+    </ol>
+  </nav>
+
+  <div class="prose">
+    <h2 id="problem"><span class="n">01</span>Problem</h2>
+    <p>People get real value from pasting work into a large language model: summarising a complaint, drafting a reply, reading a case note. That work is often full of personal information such as names, phone numbers, email addresses and government identifiers.</p>
+    <p>Organisations usually answer with one of two blunt tools: block the AI tool, or trust the provider's terms. Blocking pushes people towards unmanaged tools. Trusting the terms still sends the data out. I wanted to explore a third option: <strong>let the model do the reasoning without ever seeing the sensitive values</strong>.</p>
+
+    <h2 id="approach"><span class="n">02</span>Approach</h2>
+    <p>Airlock treats the model call like a clean room. Sensitive values are swapped for <strong>typed placeholders</strong> before the prompt leaves, the mapping stays inside the trusted boundary, and the real values are put back only after the answer returns.</p>
+
+    <div class="table-scroll">
+      <table>
+        <caption class="small muted">Illustrative example of the intended behaviour, with synthetic data (not a recorded run)</caption>
+        <thead><tr><th>Stage</th><th>Text</th></tr></thead>
+        <tbody>
+          <tr><td>Original request</td><td>Summarise: Alex Morgan called from 0400 000 000 about a refund. Reply to alex.morgan@example.com.</td></tr>
+          <tr><td>What the model sees</td><td>Summarise: <code>[PERSON_001]</code> called from <code>[PHONE_NUMBER_002]</code> about a refund. Reply to <code>[EMAIL_ADDRESS_003]</code>.</td></tr>
+          <tr><td>What the model returns</td><td><code>[PERSON_001]</code> wants a refund. Respond by email to <code>[EMAIL_ADDRESS_003]</code>.</td></tr>
+          <tr><td>What the person receives</td><td>Alex Morgan wants a refund. Respond by email to alex.morgan@example.com.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Typed placeholders matter. A string of asterisks destroys meaning, while <code>[PERSON_001]</code> tells the model <em>there is a person here</em>, so the answer stays useful.</p>
+
+    <h2 id="architecture"><span class="n">03</span>Architecture</h2>
+    <p>The stages below describe the prototype's design intent.</p>
+  </div>
+
+  <div class="arch" role="img" aria-label="Airlock architecture: inside the trusted boundary, text is detected, tokenised and the mapping is held in a managed secret store. Only sanitised text crosses to the external model. The response is validated and rehydrated inside the boundary.">
+    <div class="zone trusted">
+      <p class="label">Trusted boundary</p>
+      <div class="row">
+        <div class="box"><b>1. Detect</b><span>Entity recognition finds personal information in the request.</span></div>
+        <div class="box"><b>2. Tokenise</b><span>Each value is replaced with a typed, numbered placeholder.</span></div>
+        <div class="box"><b>3. Hold the map</b><span>The placeholder-to-value mapping is kept per request in a managed secret store.</span></div>
+      </div>
+    </div>
+    <div class="arrow" aria-hidden="true">↓ sanitised text only ↑ sanitised answer</div>
+    <div class="zone external">
+      <p class="label">Outside the boundary</p>
+      <div class="row">
+        <div class="box"><b>4. External model</b><span>Reasons over placeholders and is instructed to keep them intact. Never receives the mapping.</span></div>
+      </div>
+    </div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="zone trusted">
+      <p class="label">Trusted boundary</p>
+      <div class="row">
+        <div class="box"><b>5. Validate</b><span>Design intent: the answer is checked against the placeholders that were issued before anything is restored.</span></div>
+        <div class="box"><b>6. Rehydrate</b><span>Placeholders are replaced with the real values for the caller.</span></div>
+        <div class="box"><b>7. Discard</b><span>Design intent: the mapping is single-request data and is not reused.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2 id="decisions"><span class="n">04</span>Key decisions</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Decision</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Reversible, not one-way, redaction</td><td>One-way redaction protects the data but leaves the person with an answer they cannot use. Restoring values inside the boundary keeps the productivity benefit.</td></tr>
+          <tr><td>The mapping never crosses the boundary</td><td>Design intent: the model only ever sees placeholders. The mapping is the most sensitive object in the system, so it is held in a managed secret store rather than sent anywhere.</td></tr>
+          <tr><td>Keyless application code</td><td>The application reaches the model and the secret store through managed identity, so no keys or client secrets sit in the application code.</td></tr>
+          <tr><td>Refuse to restore on doubt</td><td>Design intent: if the answer contains a placeholder that was never issued, nothing is restored and the request fails, rather than guessing.</td></tr>
+          <tr><td>Infrastructure as code as an adoption baseline first</td><td>The first template <em>describes</em> the existing cloud resources without creating or changing any. A documented preview (what-if) step comes before any template is allowed to make changes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="security"><span class="n">05</span>Security and governance</h2>
+    <p>Airlock applies a familiar data loss prevention idea (<em>sensitive data should not leave</em>) at a new boundary: the prompt. It complements platform controls such as sensitivity labels and DLP policies, and does not replace them.</p>
+    <p>The honest framing matters most here. Detection is probabilistic, so a layer like this <strong>reduces exposure</strong>. It does not guarantee that nothing sensitive leaves. Anyone deploying it needs measured detection coverage for the identifiers that matter in their context, such as Australian phone numbers, addresses and government identifiers, before any real data goes near it.</p>
+
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Security redaction: implementation detail intentionally withheld</p>
+      <p>The detection configuration and the placeholder and validation logic are not published.</p>
+    </div>
+
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Host / infrastructure detail: redacted</p>
+      <p>Cloud resource names, subscription and identity identifiers, endpoints and region are not published.</p>
+    </div>
+
+    <h2 id="evidence"><span class="n">06</span>Evidence and result</h2>
+    <div class="stats">
+      <div class="stat"><b>2 days</b><span>From empty repository to a working end-to-end flow</span></div>
+      <div class="stat"><b>Synthetic</b><span>Data only: the prototype has been run with synthetic data only</span></div>
+      <div class="stat"><b>0 claims</b><span>About accuracy, until an evaluation set exists</span></div>
+    </div>
+    <p class="after-stats">What exists: a reversible core, an end-to-end flow against a model hosted in Azure AI Foundry, a serverless API in front of it, and an infrastructure baseline. It has been run with synthetic personal data only.</p>
+    <p><strong>What does not exist yet:</strong> an evaluation set or any accuracy, coverage or latency figures. That is why this case study is labelled <em>prototype</em> and <em>not yet evaluated</em>, and why it contains no performance claims.</p>
+
+    <h2 id="learned"><span class="n">07</span>What I learned</h2>
+    <ul>
+      <li><strong>Reversibility moves the risk rather than removing it.</strong> Once values can be restored, the mapping becomes the crown jewel. Its lifecycle deserves more design attention than the model call.</li>
+      <li><strong>Evaluation comes before claims.</strong> The next step is a labelled test set of realistic Australian identifiers, measured before any statement about accuracy is made.</li>
+      <li><strong>This is a platform conversation as much as an engineering one.</strong> In an enterprise, the same outcome may be better served by platform controls such as sensitivity labels, DLP for AI and approved-model routing. A custom layer earns its place only where those controls cannot reach.</li>
+    </ul>
+
+    <div class="next">
+      <a href="../jarvis/">← Jarvis</a>
+      <a href="../information-protection/">Next: Information protection →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>© 2026 David Nealon. Written and built by me. This site uses no JavaScript, no cookies, no analytics and no third-party requests.</p>
+    <p><a href="../../disclosure/">What this site deliberately does not publish, and why</a></p>
+  </div>
+</footer>
+</body>
+</html>

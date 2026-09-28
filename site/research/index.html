@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Research and experiments | David Nealon</title>
+<meta name="description" content="Selected measured findings, experiments, proposals and hypotheses from building governed AI systems, each labelled for what it actually proves.">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../">David Nealon <span>AI product, governance &amp; engineering</span></a>
+    <nav class="site" aria-label="Main">
+      <ul>
+        <li><a href="../#work">Work</a></li>
+        <li><a href="./" aria-current="page">Research</a></li>
+        <li><a href="../disclosure/">Disclosure policy</a></li>
+        <li><a href="../#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <div class="study-head prose">
+    <p class="eyebrow">Research and experiments</p>
+    <h1>What I measured, and what it does not prove</h1>
+    <p class="lede">Selected findings from building governed AI systems. Each one is labelled for what it actually is, and each states its own limits. Several did not go the way I expected, and they are here because of that.</p>
+  </div>
+
+  <div class="prose">
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Label</th><th>Meaning on this page</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip measured">Measured finding</span></td><td>A number from a real run, with the method and sample stated</td></tr>
+          <tr><td><span class="chip prototype">Experiment / prototype</span></td><td>Built and run, but not yet evaluated at a scale that supports a general claim</td></tr>
+          <tr><td><span class="chip proposal">Architectural proposal</span></td><td>A design I have argued for and partly built, not yet proven</td></tr>
+          <tr><td><span class="chip hypothesis">Hypothesis</span></td><td>What I currently believe and am testing, and could be wrong about</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">Unless stated otherwise, every result below comes from my own systems on a single Apple M1 machine with 16 GB of memory, and much of it uses synthetic data. None of it is a benchmark of anyone else's product.</p>
+  </div>
+
+  <section class="prose" aria-labelledby="r1">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">AI security</li></ul>
+    <h2 id="r1">Detection is the weakest control, so do not build on it</h2>
+    <p><strong>Question.</strong> How much protection does a heuristic prompt-injection detector really provide?</p>
+    <p><strong>Method.</strong> I wrote a corpus of attack phrasings, tuned a deny-list detector on some of them, and held out paraphrases of the same attacks.</p>
+    <p><strong>Result.</strong> It caught <strong>54 of 54</strong> phrasings it was tuned on and <strong>1 of 27</strong> held-out paraphrases.</p>
+    <p><strong>So what.</strong> This finding changed the architecture. Jarvis rests on structural controls (capabilities that do not exist, processes that cannot reach each other) and its strongest tests assert that untrusted content changes nothing even when the detector stays silent.</p>
+    <p class="small muted">Limits: one detector, one author's corpus. The finding is about heuristic detection in general, not about any vendor's product.</p>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Private security test: redacted</p>
+      <p>The attack corpus and the detector's rules are not published.</p>
+    </div>
+  </section>
+
+  <section class="prose" aria-labelledby="r2">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Retrieval and memory</li></ul>
+    <h2 id="r2">A local memory engine against acceptance criteria set in advance</h2>
+    <p><strong>Question.</strong> Is an on-device extraction and retrieval pipeline good enough to build on, without sending a personal corpus to a cloud service?</p>
+    <p><strong>Method.</strong> I wrote the acceptance criteria <em>before</em> the run, with a pre-agreed fallback plan if it failed. The pipeline was then scored on a deterministic synthetic corpus of 630 events, 450 seeded facts and 570 probes, beside a control run.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Criterion</th><th>Threshold</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Evidence recall in the context packet</td><td>≥ 90%</td><td>99.2%</td></tr>
+          <tr><td>Unanswerable questions answered anyway</td><td>≤ 10%</td><td>0 of 50</td></tr>
+          <tr><td>Retrieval latency before the model (p95)</td><td>&lt; 300 ms</td><td>76 ms</td></tr>
+          <tr><td>Extraction batch peak memory</td><td>&lt; 4 GB</td><td>3.52 GB</td></tr>
+          <tr><td>Unsupported claims in extracted memories</td><td>reported</td><td>0 of 517</td></tr>
+          <tr><td>Relation recall</td><td>reported</td><td>66.7%: the weakest number, reported as it came out</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>The history matters as much as the table.</strong> This was the fourth measurement. The third failed three criteria and sent the architecture back for reconsideration; this one passed every criterion a machine can decide. The final go or no-go decision is mine, and it is still open.</p>
+    <p class="small muted">Limits: synthetic, templated data measures containment rather than semantic understanding. One corpus, one configuration, and latency excludes the answering model.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r3">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Retrieval</li></ul>
+    <h2 id="r3">Hybrid retrieval did not beat plain vector search</h2>
+    <p>I chose a hybrid design (keyword and vector search fused by reciprocal rank fusion) partly expecting it to win. On recall@20 over 541 memories and 18 seeded questions, keyword search found 12, vector search 17 and the fused result 16. I published that result, and my own write-up says plainly that it does not prove hybrid beats a strong semantic retriever on this corpus.</p>
+    <p class="small muted">Limits: 18 questions is a small sample. The point is the discipline of reporting it, not the ranking.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r4">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Local models</li><li class="chip">Governance</li></ul>
+    <h2 id="r4">Ask a small model what something is, not whether it is allowed</h2>
+    <p><strong>Observation.</strong> A small on-device model asked whether live memory records (mostly derived from my own media library) could be shared refused to decide on most of them: 254 of 300 in a pilot.</p>
+    <p><strong>Experiment.</strong> Holding the model and weights fixed, a pre-registered 2×2 prompt experiment on fresh samples changed only the question. Asking what a record <em>is</em>, rather than whether it <em>may leave</em>, cut abstentions from 136 of 150 to 0 of 150.</p>
+    <p><strong>So what.</strong> The model could categorise all along. It was declining to adjudicate, and that reluctance had been quietly acting as a safety guard. The replacement design removes all approval authority from the model: it describes, and a deterministic rule over a human-approved list decides. It is built and awaiting my sign-off before it is switched on.</p>
+    <p class="small muted">Limits: one model, one fairly uniform corpus; the held-out confirmatory run is still to come.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r5">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Assurance method</li></ul>
+    <h2 id="r5">Pre-registered adversarial tests that become permanent</h2>
+    <p>For a data-sharing policy I registered 32 adversarial cases and their expected outcomes in version control <em>before</em> the first run, including benign controls so that a rule refusing everything could not pass. The harness collects every deviation before failing, rather than stopping at the first. Result: 0 deviations out of 32, and a byte-for-byte check that nothing was written. The suite now runs on every build.</p>
+    <p class="small muted">Limits: by its own account this proves the mechanism, not that the underlying list is complete.</p>
+    <div class="redaction" role="note">
+      <p class="tag">🔒 Private security test: redacted</p>
+      <p>The case list is not published.</p>
+    </div>
+  </section>
+
+  <section class="prose" aria-labelledby="r6">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Retrieval design</li></ul>
+    <h2 id="r6">Evidence tiers are kinds, not scores</h2>
+    <p>For cross-modal search (linking audio, video and images), I separated results into three tiers: <em>verified</em> (a standing claim says so), <em>inferred</em> (a named chain of links implies it) and <em>similar</em> (vectors only). A similarity score, however high, can never promote a result to verified, and a test fails if a new route to "verified" is added. On a nine-case gold set, precision and recall were 1.0 in both deterministic and semantic configurations. The deterministic path answered in a median of 227 µs, against 3.3 s with semantic models.</p>
+    <p>Two lessons came from the real corpus. Sorting a mixed result list by score let the most numerous kind crowd out the rest, so results are now interleaved by kind within each tier. And a gold set curated under one configuration and scored under another read 0.417 with nothing actually wrong, so gold cases now declare their configuration.</p>
+    <p class="small muted">Limits: my own media library on one machine; some relationship types exist only in test fixtures so far.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r7">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">AI FinOps</li></ul>
+    <h2 id="r7">Cost-aware model routing, measured rather than modelled</h2>
+    <p>A deterministic router (no model in the decision) picks the least expensive model expected to clear each task's quality and risk bar, and escalates with a named human's approval. Two separately authorised live runs produced same-token cost reductions of <strong>39.6% and 40.4%</strong> against a deliberately cheapest-possible frontier baseline, for a total spend of about US$0.02. A separate offline process can re-price the evidence from raw usage without spending anything.</p>
+    <p class="small muted">Limits: stated first in the original write-up. No quality claim survives in this evidence, the baseline assumes the same token counts, and no invoice was reconciled. Two cents proves the apparatus, not a business case.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r8">
+    <ul class="chips"><li class="chip proposal">Architectural proposal</li><li class="chip measured">Measured finding</li></ul>
+    <h2 id="r8">A shadow decision plane: AI judges that advise but cannot decide</h2>
+    <p><strong>Proposal.</strong> Run an external AI judge beside a deterministic policy, record where they disagree, and never let the judge's answer replace the policy's. If the advisory answer is ever substituted for the real decision, the mission fails.</p>
+    <p><strong>Findings along the way.</strong> An apparent contradiction (policy said "owner approval required", the judge said 0.54) disappeared once I read the service contract. The value is a probability of "yes", calibrated only in aggregate, so 0.54 means <em>no signal</em>, not "54% sure". I also found that a configured 300 ms timeout took over 6 seconds against a simulated rate limit, because it applied per attempt. The lesson: own your deadline instead of trusting a client library's.</p>
+    <p class="small muted">Limits: very few live comparisons so far, so no accuracy claim is made.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r9">
+    <ul class="chips"><li class="chip prototype">Experiment / prototype</li><li class="chip">Explainability</li></ul>
+    <h2 id="r9">Explanations checked against the evidence after they are written</h2>
+    <p>A hosted model writes a plain-language explanation of a mission or a memory. The explanation is then checked against the recorded evidence before it is shown. A count guard is designed to withhold an explanation whose numbers contradict the evidence. One live acceptance run cost US$0.018 against a US$0.05 cap.</p>
+    <p class="small muted">Limits: owner acceptance testing only, not a user study.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r10">
+    <ul class="chips"><li class="chip prototype">Experiment / prototype</li><li class="chip">Microsoft Power Platform</li></ul>
+    <h2 id="r10">A Copilot Studio agent for portfolio prioritisation</h2>
+    <p>Two published Copilot Studio agents with Entra ID sign-in capture a work request and its Weighted Shortest Job First (WSJF) inputs in conversation, then hand them to a Power Automate agent flow that records the item. Version one wrote to a SharePoint list. Version two moved to a custom Dataverse table with typed columns, which is the design iteration I would recommend to anyone starting with a list.</p>
+    <p class="small muted">Limits: a three-day proof on a single-user developer tenant, with no solution-based lifecycle management.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r11">
+    <ul class="chips"><li class="chip measured">Measured finding</li><li class="chip">Engineering practice</li></ul>
+    <h2 id="r11">Two green test suites can hide two code paths that disagree</h2>
+    <p>One rule had two write paths, each with its own passing test suite, and one path silently dropped a bad argument. The fix was a single shared decision table plus one test asserting that both paths agree across the whole input matrix, itself checked by deliberately breaking the code. A related finding: a frame-rate benchmark that read a flat 30.0 when idle and 20.0 under load was measuring the test harness, not the renderer. A same-minute A/B against the old version confirmed there was no regression.</p>
+  </section>
+
+  <section class="prose" aria-labelledby="r12">
+    <ul class="chips"><li class="chip hypothesis">Hypothesis</li><li class="chip">Agentic AI governance</li></ul>
+    <h2 id="r12">Self-improvement scales by widening evidence, not authority</h2>
+    <p>I believe most of the value of an AI system that improves itself can be captured at the <em>prepare</em> level: finding, ranking, specifying and drafting work. Execution authority can stay narrow, scoped and human-signed without making the loop impractical. The Jarvis lifecycle is my test of that belief. So far its core path has run once, on a deliberately small change, so this remains a hypothesis rather than a finding.</p>
+  </section>
+
+  <div class="prose next">
+    <a href="../work/information-protection/">← Information protection</a>
+    <a href="../disclosure/">Disclosure policy →</a>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>© 2026 David Nealon. Written and built by me. This site uses no JavaScript, no cookies, no analytics and no third-party requests.</p>
+    <p><a href="../disclosure/">What this site deliberately does not publish, and why</a></p>
+  </div>
+</footer>
+</body>
+</html>

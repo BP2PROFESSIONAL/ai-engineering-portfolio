@@ -1,0 +1,18 @@
+# Every file permitted in this public repository. The publication check fails on anything else.
+.github/workflows/publish.yml
+.gitignore
+ALLOWLIST.txt
+DISCLOSURE.md
+README.md
+RESEARCH.md
+case-studies/airlock.md
+case-studies/information-protection.md
+case-studies/jarvis.md
+scripts/check_publication.py
+site/assets/site.css
+site/disclosure/index.html
+site/index.html
+site/research/index.html
+site/work/airlock/index.html
+site/work/information-protection/index.html
+site/work/jarvis/index.html
